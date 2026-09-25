@@ -4,18 +4,47 @@ import { z } from "zod";
 // 1. DISCOVERY STAGE TYPES
 // ============================================================================
 
+export const DiscoveryOutputSchema = z.object({
+  problem: z.string().min(5, "Problem statement must be identified"),
+  targetAudience: z.object({
+    primary: z.string().min(2, "Primary target audience is required"),
+    secondary: z.array(z.string()).default([]),
+    characteristics: z.array(z.string()).default([]),
+    painPoints: z.array(z.string()).default([]),
+    motivations: z.array(z.string()).default([]),
+  }),
+  userNeeds: z.array(z.string()).min(1, "At least one user need is required"),
+  constraints: z.array(z.string()).default([]),
+  assumptions: z.array(z.string()).default([]),
+  missingInformation: z.array(z.string()).default([]),
+  clarifyingQuestions: z.array(z.string()).default([]),
+});
+
+export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>;
+
 export const DiscoverySchema = z.object({
   rawIdea: z.string().min(1, "Raw idea is required"),
   problem: z.string().default(""),
   targetAudience: z.object({
     primary: z.string().default(""),
-    secondary: z.string().optional(),
+    secondary: z.array(z.string()).default([]),
+    characteristics: z.array(z.string()).default([]),
     painPoints: z.array(z.string()).default([]),
     motivations: z.array(z.string()).default([]),
-  }).default({ primary: "", painPoints: [], motivations: [] }),
+  }).default({
+    primary: "",
+    secondary: [],
+    characteristics: [],
+    painPoints: [],
+    motivations: [],
+  }),
   userNeeds: z.array(z.string()).default([]),
   constraints: z.array(z.string()).default([]),
-  detectedGaps: z.array(z.string()).default([]),
+  assumptions: z.array(z.string()).default([]),
+  missingInformation: z.array(z.string()).default([]),
+  clarifyingQuestions: z.array(z.string()).default([]),
+  isAnalyzed: z.boolean().default(false),
+  analyzedAt: z.string().optional(),
 });
 
 export type Discovery = z.infer<typeof DiscoverySchema>;
@@ -284,10 +313,19 @@ export function createInitialBrandState(rawIdea: string, projectId?: string): Br
     discovery: {
       rawIdea,
       problem: "",
-      targetAudience: { primary: "", painPoints: [], motivations: [] },
+      targetAudience: {
+        primary: "",
+        secondary: [],
+        characteristics: [],
+        painPoints: [],
+        motivations: [],
+      },
       userNeeds: [],
       constraints: [],
-      detectedGaps: [],
+      assumptions: [],
+      missingInformation: [],
+      clarifyingQuestions: [],
+      isAnalyzed: false,
     },
     positioning: {
       category: "",

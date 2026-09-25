@@ -24,22 +24,37 @@ Establish a clean, modern, type-safe Next.js application foundation with the Pin
 
 ---
 
-## Phase 2: Discovery & Positioning Agents
+## Phase 2: Discovery Engine
+**Status: `IMPLEMENTED`**
+
+### Objectives
+Turn the PinkLoom foundation into a real agentic workflow with live LLM provider integration, strict runtime Zod validation, immutable BrandState updates, persistent AgentRun logging, and an interactive workspace UI.
+
+### Delivered Deliverables
+- [x] **Provider-Independent Real AI**: `src/lib/ai/provider.ts` integrating official Google GenAI (`@google/genai`) and OpenAI with automated bounded repair retries.
+- [x] **Discovery Agent**: `src/lib/agents/discovery.ts` deconstructing raw ideas into problem space, target personas, user needs, constraints, assumptions, missing information, and clarifying questions.
+- [x] **Dedicated Discovery Prompt**: `src/lib/agents/prompts/discovery.ts` with strict anti-branding guardrails.
+- [x] **Zod Validation Schema**: `DiscoveryOutputSchema` in `src/types/brand.ts` validating all structured outputs before state application.
+- [x] **BrandState Integration**: Immutably updates `BrandState.discovery` while preserving `rawIdea` and existing stage data.
+- [x] **AgentRun Trace Logging**: Generates live execution traces with run ID, timestamps, duration in ms, and status transitions (`running` -> `completed` / `failed`).
+- [x] **Server-Side Execution**: Both Server Route (`src/app/api/discovery/route.ts`) and Server Action (`src/lib/actions/discovery.ts`) protecting API keys.
+- [x] **Supabase Repository Layer**: `src/lib/db/repository.ts` persisting to `projects`, `brand_states`, and `agent_runs` with graceful zero-config memory fallback.
+- [x] **Live Discovery Workspace UI**: `src/app/workspace/page.tsx` with idea input, sample inspiration chips, progress states, structured findings display, and API key settings drawer.
+- [x] **Comprehensive Test Suite**: `scripts/test-discovery.ts` with 22 automated assertions covering valid/invalid schemas, minimal/detailed/ambiguous ideas, missing API keys, and provider failures.
+
+---
+
+## Phase 3: Positioning Agent & Brand Shaping
 **Status: `PLANNED`**
 
 ### Objectives
-Implement live LLM provider integration and construct the first two autonomous pipeline stages: Discovery and Positioning.
+Activate Stage 02: Positioning Agent to consume validated Discovery data, establish strategic whitespace, and formulate brand differentiators.
 
 ### Planned Deliverables
-- [ ] Connect live LLM provider (Google Gemini API adapter or OpenAI adapter).
-- [ ] Implement `DiscoveryAgent`:
-  - Structured extraction of problem space, target audience personas, and implicit constraints.
-  - Identification of knowledge gaps in the user's raw idea.
-- [ ] Implement `PositioningAgent`:
-  - Category definition and whitespace identification.
-  - Value proposition and differentiator formulation.
-- [ ] Connect Next.js Server Actions to persist stage results into `brand_states` and log `agent_runs`.
-- [ ] Interactive user feedback step: allow founder to edit or approve Discovery/Positioning findings.
+- [ ] Implement `PositioningAgent` (`src/lib/agents/positioning.ts`).
+- [ ] Connect Positioning prompt pipeline to read `BrandState.discovery`.
+- [ ] Define `PositioningOutputSchema` (category, differentiator, value prop, market angle).
+- [ ] Add interactive Positioning UI in `/workspace` with approval gate to Stage 03 (Shape).
 
 ---
 

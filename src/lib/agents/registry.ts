@@ -26,17 +26,37 @@ function createAgentStub(
   };
 }
 
+import { executeDiscoveryAgent } from "./discovery";
+
 export const OrchestratorAgent = createAgentStub(
   "Orchestrator",
   "DISCOVER",
   "Coordinates workflow execution, manages stage transitions, handles critique-revision loops, and validates pipeline integrity."
 );
 
-export const DiscoveryAgent = createAgentStub(
-  "Discovery",
-  "DISCOVER",
-  "Deconstructs the raw startup/product idea into core problem statements, audience segments, user needs, and practical constraints."
-);
+export const DiscoveryAgent: AgentDefinition = {
+  name: "Discovery",
+  stage: "DISCOVER",
+  description:
+    "Deconstructs the raw startup/product idea into core problem statements, audience segments, user needs, and practical constraints.",
+  execute: async (input, context): Promise<AgentResult> => {
+    const rawIdea = (input.rawIdea as string) || context.currentBrandState.discovery.rawIdea;
+    const result = await executeDiscoveryAgent(
+      { rawIdea, projectId: context.projectId },
+      context.currentBrandState
+    );
+
+    return {
+      agentName: "Discovery",
+      stage: "DISCOVER",
+      success: result.success,
+      output: (result.discoveryOutput as unknown as Record<string, unknown>) || {},
+      updatedStatePartial: result.updatedBrandState || {},
+      durationMs: result.agentRun.durationMs || 0,
+      error: result.error,
+    };
+  },
+};
 
 export const PositioningAgent = createAgentStub(
   "Positioning",

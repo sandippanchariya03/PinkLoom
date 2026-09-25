@@ -18,6 +18,9 @@ export interface LLMGenerationOptions {
   maxTokens?: number;
   stopSequences?: string[];
   seed?: number;
+  apiKey?: string;
+  model?: string;
+  jsonSchema?: Record<string, unknown>;
 }
 
 export interface LLMResponse {

@@ -16,11 +16,20 @@ import {
   ShieldAlert,
   Layers,
   PackageCheck,
-  Bot,
+  ArrowRight,
+  HelpCircle,
+  Lightbulb,
+  AlertTriangle,
+  Users,
+  Key,
+  RotateCcw,
+  Terminal,
 } from "lucide-react";
 import { WORKFLOW_STAGES, type WorkflowStage, type WorkflowStatus } from "@/types/workflow";
+import type { AgentRun } from "@/types/agent";
+import type { BrandState, DiscoveryOutput } from "@/types/brand";
 
-// Stage-specific icons for clean editorial representation
+// Stage-specific icons
 const STAGE_ICONS: Record<WorkflowStage, React.ElementType> = {
   DISCOVER: Compass,
   POSITION: Target,
@@ -31,66 +40,122 @@ const STAGE_ICONS: Record<WorkflowStage, React.ElementType> = {
   DELIVER: PackageCheck,
 };
 
-// Initial demonstration status for the workspace shell
-const INITIAL_DEMO_STATUSES: Record<WorkflowStage, WorkflowStatus> = {
-  DISCOVER: "completed",
-  POSITION: "completed",
-  SHAPE: "running",
-  VISUALIZE: "waiting",
-  CHALLENGE: "waiting",
-  CONSISTENCY: "waiting",
-  DELIVER: "waiting",
-};
+const SAMPLE_IDEAS = [
+  {
+    title: "College Cofounders",
+    text: "A platform that helps university students find serious, vetted technical and business cofounders on their campuses based on commitment level and complementary skills rather than just casual coffee chats.",
+  },
+  {
+    title: "Artisanal Honey",
+    text: "A direct-to-consumer regenerative honey brand partnering with regional family apiaries to deliver single-origin, traceable raw wildflower honey with pesticide testing reports for every jar.",
+  },
+  {
+    title: "DevOps Incident Scribe",
+    text: "An autonomous CLI and Slack tool that watches cloud alerts during production outages, synthesizes logs into real-time incident timelines, and drafts preliminary post-mortems for engineering teams.",
+  },
+];
 
 export default function WorkspacePage() {
-  const [selectedStage, setSelectedStage] = useState<WorkflowStage>("SHAPE");
-  const [stageStatuses] = useState<Record<WorkflowStage, WorkflowStatus>>(INITIAL_DEMO_STATUSES);
-  const [rawIdea] = useState<string>(
-    "An AI brand intelligence platform that guides early-stage founders to craft cohesive, memorable identities through an adversarial critique and revision workflow."
-  );
+  const [selectedStage, setSelectedStage] = useState<WorkflowStage>("DISCOVER");
 
-  const activeStageConfig = WORKFLOW_STAGES.find((s) => s.stage === selectedStage) || WORKFLOW_STAGES[0];
-  const ActiveIcon = STAGE_ICONS[selectedStage];
+  // Idea input state
+  const [rawIdea, setRawIdea] = useState<string>("");
+  const [customApiKey, setCustomApiKey] = useState<string>("");
+  const [showKeyInput, setShowKeyInput] = useState<boolean>(false);
 
-  const getStatusBadge = (status: WorkflowStatus) => {
-    switch (status) {
-      case "completed":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#E8F5E9] text-[#2E7D32]">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            Completed
-          </span>
-        );
-      case "running":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FFF8E1] text-[#B78103] animate-pulse">
-            <PlayCircle className="w-3.5 h-3.5" />
-            In Progress
-          </span>
-        );
-      case "failed":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FFEBEE] text-[#C62828]">
-            <AlertCircle className="w-3.5 h-3.5" />
-            Failed
-          </span>
-        );
-      case "waiting":
-      default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#F0EDE6] text-[#78756F]">
-            <Clock className="w-3.5 h-3.5" />
-            Waiting
-          </span>
-        );
+  // Workflow state
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadingStep, setLoadingStep] = useState<string>("Analyzing your idea...");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Real Agent State
+  const [brandState, setBrandState] = useState<BrandState | null>(null);
+  const [activeRun, setActiveRun] = useState<AgentRun | null>(null);
+  const [allRuns, setAllRuns] = useState<AgentRun[]>([]);
+
+  // Stage statuses based on real state
+  const getStageStatus = (stage: WorkflowStage): WorkflowStatus => {
+    if (stage === "DISCOVER") {
+      if (isLoading) return "running";
+      if (brandState?.discovery?.isAnalyzed) return "completed";
+      if (errorMessage && !brandState?.discovery?.isAnalyzed) return "failed";
+      return "waiting";
+    }
+    // Stages 2-7 are waiting until subsequent phases
+    return "waiting";
+  };
+
+  const handleRunDiscovery = async (ideaToRun?: string) => {
+    const textToAnalyze = (ideaToRun || rawIdea).trim();
+    if (!textToAnalyze || textToAnalyze.length < 5) {
+      setErrorMessage("Please enter an idea of at least 5 characters to analyze.");
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+    setLoadingStep("Connecting to Discovery Agent...");
+
+    const stepInterval = setInterval(() => {
+      setLoadingStep((prev) => {
+        if (prev.includes("Connecting")) return "Deconstructing problem space...";
+        if (prev.includes("Deconstructing")) return "Mapping audience personas & pain points...";
+        if (prev.includes("Mapping")) return "Detecting unstated assumptions & blind spots...";
+        if (prev.includes("Detecting")) return "Formulating strategic clarifying questions...";
+        return "Finalizing structured brand state...";
+      });
+    }, 1200);
+
+    try {
+      const res = await fetch("/api/discovery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rawIdea: textToAnalyze,
+          apiKey: customApiKey.trim() || undefined,
+        }),
+      });
+
+      clearInterval(stepInterval);
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Discovery agent execution failed.");
+      }
+
+      setBrandState(data.brandState);
+      if (data.agentRun) {
+        setActiveRun(data.agentRun);
+        setAllRuns((prev) => [data.agentRun, ...prev.filter((r) => r.id !== data.agentRun.id)]);
+      }
+    } catch (err) {
+      clearInterval(stepInterval);
+      const msg = err instanceof Error ? err.message : "Discovery execution failed.";
+      setErrorMessage(msg);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const activeStageConfig = WORKFLOW_STAGES.find((s) => s.stage === selectedStage) || WORKFLOW_STAGES[0];
+  const ActiveIcon = STAGE_ICONS[selectedStage];
+  const discoveryData: DiscoveryOutput | null = brandState?.discovery?.isAnalyzed
+    ? {
+        problem: brandState.discovery.problem,
+        targetAudience: brandState.discovery.targetAudience,
+        userNeeds: brandState.discovery.userNeeds,
+        constraints: brandState.discovery.constraints,
+        assumptions: brandState.discovery.assumptions,
+        missingInformation: brandState.discovery.missingInformation,
+        clarifyingQuestions: brandState.discovery.clarifyingQuestions,
+      }
+    : null;
+
   return (
-    <div className="min-h-screen bg-[#FBF9F6] text-[#141416] flex flex-col">
-      {/* Top Navigation */}
-      <header className="border-b border-[#E8E5DF] bg-[#FFFFFF]/80 backdrop-blur-sm sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#FBF9F6] text-[#141416] flex flex-col font-sans">
+      {/* Top Editorial Bar */}
+      <header className="border-b border-[#E8E5DF] bg-[#FFFFFF]/85 backdrop-blur-sm sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link
               href="/"
@@ -102,46 +167,81 @@ export default function WorkspacePage() {
             <div className="h-4 w-px bg-[#E8E5DF]" />
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#E87A90]" />
-              <span className="font-semibold text-xs tracking-widest uppercase">PINKLOOM</span>
+              <span className="font-semibold text-xs tracking-widest uppercase text-[#141416]">PINKLOOM</span>
               <span className="text-[#96948F] text-xs">/</span>
-              <span className="text-xs text-[#686764] font-medium">Brand Intelligence Pipeline</span>
+              <span className="text-xs text-[#686764] font-medium">Stage 01: Discovery Engine</span>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-xs px-2.5 py-1 rounded-full bg-[#F0EDE6] text-[#686764] font-mono">
-              Phase 1 Architecture Shell
+            <button
+              type="button"
+              onClick={() => setShowKeyInput(!showKeyInput)}
+              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-[#E8E5DF] text-[#686764] hover:text-[#141416] hover:bg-[#F8F6F0] transition-colors"
+            >
+              <Key className="w-3.5 h-3.5 text-[#E87A90]" />
+              <span>{customApiKey ? "Custom Key Configured" : "API Key Settings"}</span>
+            </button>
+            <span className="text-xs px-2.5 py-1 rounded-full bg-[#E8F5E9] text-[#2E7D32] font-mono border border-[#C8E6C9]">
+              Phase 2 Live Engine
             </span>
           </div>
         </div>
+
+        {/* Collapsible Key Configuration Drawer */}
+        {showKeyInput && (
+          <div className="border-t border-[#E8E5DF] bg-[#FDFBF7] px-6 py-3">
+            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+              <div className="text-[#686764]">
+                <span className="font-semibold text-[#141416]">LLM Provider Configuration:</span> Defaults to server environment variables (<code className="bg-[#EAE7E0] px-1 rounded">GEMINI_API_KEY</code>). Or provide a temporary session key:
+              </div>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <input
+                  type="password"
+                  placeholder="Paste Gemini or OpenAI API Key..."
+                  value={customApiKey}
+                  onChange={(e) => setCustomApiKey(e.target.value)}
+                  className="px-3 py-1.5 border border-[#D5D2CA] rounded-lg text-xs bg-white text-[#141416] w-full sm:w-72 focus:outline-none focus:ring-1 focus:ring-[#141416]"
+                />
+                {customApiKey && (
+                  <button
+                    type="button"
+                    onClick={() => setCustomApiKey("")}
+                    className="text-[#96948F] hover:text-[#141416] text-xs"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
-      {/* Main Workspace Body */}
+      {/* Main Workspace Grid */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Staged AI Workflow Pipeline */}
-        <section className="lg:col-span-5 space-y-4">
+        {/* Left Column: Staged AI Workflow Progression */}
+        <section className="lg:col-span-4 space-y-4">
           <div>
             <h2 className="text-xs font-semibold tracking-widest uppercase text-[#96948F]">
-              Staged Workflow
+              Staged AI Pipeline
             </h2>
             <p className="font-editorial text-2xl text-[#141416] mt-1">
-              Brand Evolution Pipeline
+              Workflow Stages
             </p>
             <p className="text-xs text-[#686764] mt-1">
-              Information flows sequentially with adversarial critique and structured validation.
+              Real agent execution with typed state progression.
             </p>
           </div>
 
-          {/* Vertical Pipeline Representation */}
           <div className="space-y-2 mt-4">
             {WORKFLOW_STAGES.map((s, idx) => {
               const Icon = STAGE_ICONS[s.stage];
-              const status = stageStatuses[s.stage];
+              const status = getStageStatus(s.stage);
               const isSelected = selectedStage === s.stage;
 
               return (
                 <div key={s.stage} className="relative">
-                  {/* Connecting Line Between Stages */}
                   {idx < WORKFLOW_STAGES.length - 1 && (
                     <div
                       className={`absolute left-6 top-12 w-0.5 h-6 z-0 ${
@@ -159,7 +259,7 @@ export default function WorkspacePage() {
                         : "bg-[#FFFFFF]/70 border-[#E8E5DF] hover:bg-[#FFFFFF] hover:border-[#D0CDC6]"
                     }`}
                   >
-                    <div className="flex items-center gap-3.5">
+                    <div className="flex items-center gap-3">
                       <div
                         className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
                           status === "completed"
@@ -182,7 +282,30 @@ export default function WorkspacePage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {getStatusBadge(status)}
+                      {status === "completed" && (
+                        <span className="inline-flex items-center gap-1 text-[11px] text-[#2E7D32] bg-[#E8F5E9] px-2 py-0.5 rounded-full font-medium">
+                          <CheckCircle2 className="w-3 h-3" />
+                          Done
+                        </span>
+                      )}
+                      {status === "running" && (
+                        <span className="inline-flex items-center gap-1 text-[11px] text-[#B78103] bg-[#FFF8E1] px-2 py-0.5 rounded-full font-medium animate-pulse">
+                          <PlayCircle className="w-3 h-3" />
+                          Running
+                        </span>
+                      )}
+                      {status === "failed" && (
+                        <span className="inline-flex items-center gap-1 text-[11px] text-[#C62828] bg-[#FFEBEE] px-2 py-0.5 rounded-full font-medium">
+                          <AlertCircle className="w-3 h-3" />
+                          Failed
+                        </span>
+                      )}
+                      {status === "waiting" && (
+                        <span className="inline-flex items-center gap-1 text-[11px] text-[#78756F] bg-[#F0EDE6] px-2 py-0.5 rounded-full font-medium">
+                          <Clock className="w-3 h-3" />
+                          Waiting
+                        </span>
+                      )}
                       <ChevronRight
                         className={`w-4 h-4 transition-transform ${
                           isSelected ? "text-[#141416] translate-x-0.5" : "text-[#96948F]"
@@ -194,104 +317,399 @@ export default function WorkspacePage() {
               );
             })}
           </div>
+
+          {/* Live Agent Run Trace Box */}
+          <div className="mt-6 rounded-2xl bg-[#141416] text-[#E8E6DF] p-4 font-mono text-xs border border-[#27262A] shadow-md">
+            <div className="flex items-center justify-between border-b border-[#2A292E] pb-2 mb-3">
+              <div className="flex items-center gap-2 text-[#E87A90]">
+                <Terminal className="w-3.5 h-3.5" />
+                <span className="font-semibold tracking-wider uppercase text-[11px]">Agent Execution Trace</span>
+              </div>
+              <span className="text-[10px] text-[#8E8C88]">
+                {allRuns.length > 0 ? `${allRuns.length} trace${allRuns.length > 1 ? "s" : ""}` : "Live Status"}
+              </span>
+            </div>
+
+            {activeRun ? (
+              <div className="space-y-2 text-[11px]">
+                <div className="flex justify-between">
+                  <span className="text-[#8E8C88]">Agent:</span>
+                  <span className="text-[#FBF9F6] font-semibold">{activeRun.agentName} Agent</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#8E8C88]">Stage:</span>
+                  <span className="text-[#81C784] font-medium">{activeRun.stage}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#8E8C88]">Status:</span>
+                  <span
+                    className={
+                      activeRun.status === "completed"
+                        ? "text-[#81C784]"
+                        : activeRun.status === "running"
+                        ? "text-[#FFD54F]"
+                        : "text-[#E57373]"
+                    }
+                  >
+                    {activeRun.status.toUpperCase()}
+                  </span>
+                </div>
+                {activeRun.durationMs !== undefined && (
+                  <div className="flex justify-between">
+                    <span className="text-[#8E8C88]">Execution Time:</span>
+                    <span className="text-[#FBF9F6]">{(activeRun.durationMs / 1000).toFixed(2)}s</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-[#8E8C88]">Run ID:</span>
+                  <span className="text-[#8E8C88] truncate max-w-[140px]">{activeRun.id}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="py-4 text-center text-[#8E8C88] text-[11px]">
+                No agent runs recorded yet.<br />
+                Enter an idea and click &ldquo;Analyze my idea&rdquo;.
+              </div>
+            )}
+          </div>
         </section>
 
-        {/* Right Column: Stage Inspection & Agent Trace View */}
-        <section className="lg:col-span-7 space-y-6">
-          {/* Active Stage Detail Panel */}
-          <div className="bg-[#FFFFFF] border border-[#E8E5DF] rounded-2xl p-6 shadow-sm">
-            <div className="flex items-start justify-between pb-6 border-b border-[#F0EDE6]">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl bg-[#FDF0F3] text-[#E87A90] flex items-center justify-center">
-                  <ActiveIcon className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono text-[#96948F]">STAGE 0{activeStageConfig.order}</span>
-                    <span className="text-[#DDD9D0]">·</span>
-                    {getStatusBadge(stageStatuses[selectedStage])}
+        {/* Right Column: Active Stage Content */}
+        <section className="lg:col-span-8 space-y-6">
+          {selectedStage === "DISCOVER" ? (
+            <div className="bg-[#FFFFFF] border border-[#E8E5DF] rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
+              {/* Header */}
+              <div className="flex items-start justify-between pb-6 border-b border-[#F0EDE6]">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-[#FDF0F3] text-[#E87A90] flex items-center justify-center">
+                    <ActiveIcon className="w-5 h-5" />
                   </div>
-                  <h3 className="font-editorial text-2xl text-[#141416] mt-0.5">
-                    {activeStageConfig.label} — {activeStageConfig.tagline}
-                  </h3>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono text-[#96948F]">STAGE 01</span>
+                      <span className="text-[#DDD9D0]">·</span>
+                      <span className="text-xs font-medium text-[#2E7D32] bg-[#E8F5E9] px-2 py-0.5 rounded-full">
+                        {brandState?.discovery?.isAnalyzed ? "Analyzed" : "Ready for Input"}
+                      </span>
+                    </div>
+                    <h3 className="font-editorial text-2xl sm:text-3xl text-[#141416] mt-0.5">
+                      Let&apos;s understand what you&apos;re building.
+                    </h3>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Description & Objective */}
-            <div className="py-5 space-y-4">
-              <div>
-                <h4 className="text-xs font-mono uppercase tracking-wider text-[#96948F]">Stage Purpose</h4>
-                <p className="text-sm text-[#4A4946] mt-1 leading-relaxed">
-                  {activeStageConfig.description}
-                </p>
+                {brandState?.discovery?.isAnalyzed && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBrandState(null);
+                      setActiveRun(null);
+                    }}
+                    className="inline-flex items-center gap-1.5 text-xs text-[#686764] hover:text-[#141416] px-3 py-1.5 rounded-lg border border-[#E8E5DF] hover:bg-[#F8F6F0]"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    Reset
+                  </button>
+                )}
               </div>
 
-              {/* Associated Agents */}
-              <div>
-                <h4 className="text-xs font-mono uppercase tracking-wider text-[#96948F]">
-                  Orchestrated Agents
-                </h4>
-                <div className="flex flex-wrap gap-2 mt-1.5">
-                  {activeStageConfig.associatedAgents.map((agent) => (
-                    <span
-                      key={agent}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#F8F6F0] border border-[#E8E5DF] text-xs font-medium text-[#141416]"
+              {/* Error Alert */}
+              {errorMessage && (
+                <div className="p-4 rounded-xl bg-[#FFEBEE] border border-[#FFCDD2] text-[#C62828] text-xs flex items-start gap-3">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold">Discovery Execution Issue</p>
+                    <p className="mt-0.5 leading-relaxed">{errorMessage}</p>
+                    <p className="mt-2 text-[11px] text-[#D32F2F]">
+                      Tip: If you do not have an API key configured on the server, click &ldquo;API Key Settings&rdquo; in the top navigation to provide a session key.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* State 1: Input Form (when not yet analyzed) */}
+              {!brandState?.discovery?.isAnalyzed && (
+                <div className="space-y-6">
+                  <div>
+                    <label
+                      htmlFor="raw-idea-input"
+                      className="block text-xs font-semibold uppercase tracking-wider text-[#686764] mb-2"
                     >
-                      <Bot className="w-3.5 h-3.5 text-[#E87A90]" />
-                      {agent}
-                    </span>
-                  ))}
-                </div>
-              </div>
+                      Raw Startup, Product, or Community Idea
+                    </label>
+                    <textarea
+                      id="raw-idea-input"
+                      rows={5}
+                      value={rawIdea}
+                      onChange={(e) => setRawIdea(e.target.value)}
+                      placeholder="Describe what you want to build in your own words. Don't worry about sounding polished or picking brand names yet. Focus on who you are helping and what pain you want to solve..."
+                      className="w-full p-4 rounded-xl border border-[#D5D2CA] text-sm text-[#141416] bg-[#FCFBF8] focus:bg-[#FFFFFF] focus:outline-none focus:ring-2 focus:ring-[#141416]/10 focus:border-[#141416] transition-all resize-y"
+                    />
+                  </div>
 
-              {/* Raw Idea Context Preview */}
-              <div className="bg-[#FAF8F5] border border-[#EBE8E1] rounded-xl p-4 mt-4">
-                <div className="flex items-center justify-between text-xs text-[#96948F] mb-1.5">
-                  <span className="font-mono uppercase tracking-wider">Root Idea Input</span>
-                  <span>Read-Only State</span>
+                  {/* Inspiration Idea Chips */}
+                  <div>
+                    <span className="text-[11px] font-medium uppercase tracking-wider text-[#96948F] block mb-2">
+                      Or try an example idea:
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {SAMPLE_IDEAS.map((sample) => (
+                        <button
+                          key={sample.title}
+                          type="button"
+                          onClick={() => {
+                            setRawIdea(sample.text);
+                            handleRunDiscovery(sample.text);
+                          }}
+                          disabled={isLoading}
+                          className="text-xs px-3 py-1.5 rounded-lg bg-[#F5F2EB] hover:bg-[#EBE7DD] text-[#383734] transition-colors border border-[#E0DCD3] text-left"
+                        >
+                          <span className="font-medium text-[#141416]">✦ {sample.title}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Action Button */}
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      id="analyze-idea-btn"
+                      onClick={() => handleRunDiscovery()}
+                      disabled={isLoading || !rawIdea.trim()}
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-xl bg-[#141416] text-[#FBF9F6] text-sm font-medium hover:bg-[#27262A] disabled:opacity-50 disabled:pointer-events-none transition-all shadow-sm active:scale-[0.99]"
+                    >
+                      {isLoading ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-[#FBF9F6] border-t-transparent rounded-full animate-spin" />
+                          <span>{loadingStep}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Analyze my idea</span>
+                          <ArrowRight className="w-4 h-4 text-[#E87A90]" />
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
-                <p className="text-xs sm:text-sm text-[#383734] italic font-serif leading-relaxed">
-                  &ldquo;{rawIdea}&rdquo;
+              )}
+
+              {/* State 2: Discovery Structured Results */}
+              {discoveryData && (
+                <div className="space-y-8 animate-in fade-in duration-300">
+                  {/* Raw Idea Recap */}
+                  <div className="bg-[#FAF8F5] border border-[#E8E5DF] rounded-xl p-4">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#96948F] block mb-1">
+                      Input Idea (Raw Founder Statement)
+                    </span>
+                    <p className="text-xs sm:text-sm text-[#383734] italic font-serif leading-relaxed">
+                      &ldquo;{brandState?.discovery.rawIdea}&rdquo;
+                    </p>
+                  </div>
+
+                  {/* 1. Problem Statement */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-[#141416]">
+                      <Target className="w-4 h-4 text-[#E87A90]" />
+                      <span>The Core Problem</span>
+                    </div>
+                    <div className="bg-white border border-[#E8E5DF] rounded-xl p-5 shadow-xs">
+                      <p className="text-sm text-[#27262A] leading-relaxed">
+                        {discoveryData.problem}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 2. Target Audience */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-[#141416]">
+                      <Users className="w-4 h-4 text-[#E87A90]" />
+                      <span>Target Audience Anatomy</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Primary Segment */}
+                      <div className="bg-[#FAF9F5] border border-[#E8E5DF] rounded-xl p-4 space-y-2">
+                        <span className="text-[11px] font-mono uppercase tracking-wider text-[#686764] block">
+                          Primary Persona
+                        </span>
+                        <p className="text-sm font-medium text-[#141416]">
+                          {discoveryData.targetAudience.primary}
+                        </p>
+                        {discoveryData.targetAudience.characteristics.length > 0 && (
+                          <div className="pt-2">
+                            <span className="text-[10px] text-[#96948F] block mb-1">Key Traits:</span>
+                            <ul className="text-xs text-[#52514D] space-y-1 list-disc list-inside">
+                              {discoveryData.targetAudience.characteristics.map((c, i) => (
+                                <li key={i}>{c}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Pain Points & Motivations */}
+                      <div className="bg-[#FAF9F5] border border-[#E8E5DF] rounded-xl p-4 space-y-3">
+                        <div>
+                          <span className="text-[11px] font-mono uppercase tracking-wider text-[#C62828] block mb-1">
+                            Acute Pain Points
+                          </span>
+                          <ul className="text-xs text-[#52514D] space-y-1">
+                            {discoveryData.targetAudience.painPoints.map((p, i) => (
+                              <li key={i} className="flex items-start gap-1.5">
+                                <span className="text-[#C62828]">•</span>
+                                <span>{p}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        {discoveryData.targetAudience.motivations.length > 0 && (
+                          <div>
+                            <span className="text-[11px] font-mono uppercase tracking-wider text-[#2E7D32] block mb-1">
+                              Underlying Motivations
+                            </span>
+                            <ul className="text-xs text-[#52514D] space-y-1">
+                              {discoveryData.targetAudience.motivations.map((m, i) => (
+                                <li key={i} className="flex items-start gap-1.5">
+                                  <span className="text-[#2E7D32]">•</span>
+                                  <span>{m}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. User Needs & Constraints */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* User Needs */}
+                    <div className="border border-[#E8E5DF] rounded-xl p-4 bg-white space-y-2">
+                      <div className="flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase text-[#141416]">
+                        <Lightbulb className="w-3.5 h-3.5 text-[#E87A90]" />
+                        <span>Core User Needs</span>
+                      </div>
+                      <ul className="text-xs text-[#4A4946] space-y-2 pt-1">
+                        {discoveryData.userNeeds.map((need, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#E87A90] shrink-0 mt-1.5" />
+                            <span>{need}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Constraints */}
+                    <div className="border border-[#E8E5DF] rounded-xl p-4 bg-white space-y-2">
+                      <div className="flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase text-[#141416]">
+                        <AlertTriangle className="w-3.5 h-3.5 text-[#F57C00]" />
+                        <span>Practical Constraints</span>
+                      </div>
+                      <ul className="text-xs text-[#4A4946] space-y-2 pt-1">
+                        {discoveryData.constraints.map((c, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#F57C00] shrink-0 mt-1.5" />
+                            <span>{c}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* 4. Assumptions & Missing Information (Discovery Intelligence) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Assumptions */}
+                    <div className="bg-[#FFFDF7] border border-[#FFE8B3] rounded-xl p-4 space-y-2">
+                      <span className="text-xs font-semibold tracking-wider uppercase text-[#B78103] block">
+                        Unproven Assumptions
+                      </span>
+                      <ul className="text-xs text-[#52514D] space-y-1.5">
+                        {discoveryData.assumptions.map((a, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-[#B78103]">?</span>
+                            <span>{a}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Missing Information */}
+                    <div className="bg-[#F8F9FA] border border-[#DEE2E6] rounded-xl p-4 space-y-2">
+                      <span className="text-xs font-semibold tracking-wider uppercase text-[#495057] block">
+                        Missing Information / Blind Spots
+                      </span>
+                      <ul className="text-xs text-[#52514D] space-y-1.5">
+                        {discoveryData.missingInformation.map((m, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-[#6C757D]">!</span>
+                            <span>{m}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* 5. Clarifying Questions */}
+                  <div className="bg-[#FDF9FA] border border-[#F3CFD7] rounded-xl p-5 space-y-3">
+                    <div className="flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-[#C85A70]">
+                      <HelpCircle className="w-4 h-4" />
+                      <span>Clarifying Questions to Refine Focus</span>
+                    </div>
+                    <div className="space-y-2">
+                      {discoveryData.clarifyingQuestions.map((q, i) => (
+                        <div key={i} className="flex items-start gap-2 text-xs text-[#2A292E] bg-white p-2.5 rounded-lg border border-[#F3CFD7]">
+                          <span className="font-mono text-[#C85A70] font-semibold">{i + 1}.</span>
+                          <span className="font-medium">{q}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Next Step Milestone Banner */}
+                  <div className="pt-4 border-t border-[#F0EDE6] flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="text-xs text-[#686764]">
+                      <span className="font-semibold text-[#141416]">Stage 01 Completed.</span> Information has been validated and committed to BrandState.
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedStage("POSITION")}
+                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#141416] text-[#FBF9F6] text-xs font-medium hover:bg-[#27262A] transition-all"
+                    >
+                      <span>Approve & Continue to Stage 02 (Positioning)</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-[#E87A90]" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Non-Discovery Stage Placeholder (Shows architecture readiness for Phase 3+) */
+            <div className="bg-[#FFFFFF] border border-[#E8E5DF] rounded-2xl p-8 shadow-sm text-center space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-[#F5F2EB] text-[#78756F] flex items-center justify-center mx-auto">
+                <ActiveIcon className="w-7 h-7" />
+              </div>
+              <h3 className="font-editorial text-3xl text-[#141416]">
+                {activeStageConfig.label} — {activeStageConfig.tagline}
+              </h3>
+              <p className="text-xs sm:text-sm text-[#686764] max-w-md mx-auto leading-relaxed">
+                {activeStageConfig.description}
+              </p>
+              <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E8E5DF] text-xs text-[#78756F] max-w-md mx-auto">
+                <p className="font-semibold text-[#141416]">Phase 2 Architectural Boundary</p>
+                <p className="mt-1">
+                  The {activeStageConfig.label} stage is typed and ready for Phase 3. It will consume the validated Discovery data directly from the shared BrandState.
                 </p>
               </div>
+              <button
+                type="button"
+                onClick={() => setSelectedStage("DISCOVER")}
+                className="inline-flex items-center gap-1.5 text-xs text-[#141416] font-medium underline underline-offset-4 hover:opacity-75"
+              >
+                ← Return to Stage 01: Discover
+              </button>
             </div>
-
-            {/* Execution Trace Demo Box (How the workflow will show judges live progress) */}
-            <div className="mt-2 pt-4 border-t border-[#F0EDE6]">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-mono uppercase tracking-wider text-[#96948F]">
-                  Agent Run Trace Log
-                </span>
-                <span className="text-[11px] font-mono text-[#A5A39E]">
-                  Architecture Specification: Phase 1
-                </span>
-              </div>
-
-              <div className="rounded-xl bg-[#141416] text-[#E8E6DF] p-4 font-mono text-xs space-y-2">
-                <div className="flex items-center justify-between text-[#8E8C88] border-b border-[#2A292E] pb-2">
-                  <span>AGENT TRACE ID</span>
-                  <span>STATUS</span>
-                </div>
-                <div className="flex items-center justify-between text-[#81C784]">
-                  <span>trace-01 [DiscoveryAgent]</span>
-                  <span>COMPLETED (420ms)</span>
-                </div>
-                <div className="flex items-center justify-between text-[#81C784]">
-                  <span>trace-02 [PositioningAgent]</span>
-                  <span>COMPLETED (580ms)</span>
-                </div>
-                <div className="flex items-center justify-between text-[#FFD54F]">
-                  <span>trace-03 [PersonalityAgent]</span>
-                  <span>RUNNING</span>
-                </div>
-                <div className="flex items-center justify-between text-[#686764]">
-                  <span>trace-04 [CriticAgent]</span>
-                  <span>WAITING</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          )}
         </section>
       </main>
     </div>
