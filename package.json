@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "lint": "eslint",
-    "test": "tsx scripts/test-discovery.ts"
+    "test": "tsx scripts/test-discovery.ts && tsx scripts/test-positioning.ts"
   },
   "dependencies": {
     "@google/genai": "^2.24.0",

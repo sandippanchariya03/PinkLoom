@@ -9,6 +9,7 @@ import {
   type BrandState,
   type DiscoveryOutput,
   DiscoveryOutputSchema,
+  createInitialBrandState,
 } from "@/types/brand";
 import { getAIProvider } from "@/lib/ai/provider";
 import type { LLMMessage, LLMProvider } from "@/lib/ai/types";
@@ -109,44 +110,7 @@ export async function executeDiscoveryAgent(
     agentRun.durationMs = durationMs;
 
     // 4. Immutably update BrandState
-    const baseState: BrandState = currentState || {
-      projectId,
-      version: 1,
-      createdAt: completedAt,
-      updatedAt: completedAt,
-      discovery: {
-        rawIdea,
-        problem: "",
-        targetAudience: { primary: "", secondary: [], characteristics: [], painPoints: [], motivations: [] },
-        userNeeds: [],
-        constraints: [],
-        assumptions: [],
-        missingInformation: [],
-        clarifyingQuestions: [],
-        isAnalyzed: false,
-      },
-      positioning: {
-        category: "",
-        positioning: "",
-        differentiator: "",
-        valueProposition: "",
-        marketAngle: "",
-        competitiveContrast: "",
-      },
-      personality: { archetype: "", traits: [], principles: [], emotionalHook: "" },
-      naming: { namingDirections: [], selectedName: null, tagline: null, taglineOptions: [] },
-      voice: { toneAttributes: [], voiceGuidelines: [], messaging: { oneLiner: "", elevatorPitch: "", pillars: [] } },
-      visualDirection: {
-        overallAesthetic: "",
-        colors: [],
-        typography: { headingFont: "Instrument Serif", bodyFont: "Inter", pairingRationale: "" },
-        imagery: { style: "", moodKeywords: [], visualMetaphors: [], lightingAndTexture: "" },
-        logoDirection: { concept: "", symbolism: "", formLanguage: "", compositionNotes: "" },
-      },
-      critique: { summary: "", critiques: [], genericLanguageDetected: [], strengths: [], vulnerabilities: [] },
-      consistency: { overallCoherenceScore: 0, alignments: [], crossStageConflicts: [], finalRecommendation: "" },
-      finalBrandKit: null,
-    };
+    const baseState: BrandState = currentState || createInitialBrandState(rawIdea, projectId);
 
     const updatedBrandState: BrandState = {
       ...baseState,

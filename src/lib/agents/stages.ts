@@ -32,8 +32,8 @@ export const STAGE_CONFIGS: Record<WorkflowStage, StageConfig> = {
     primaryAgent: "Positioning",
     supportingAgents: [],
     canRun: (state) => {
-      if (!state.discovery.problem || !state.discovery.targetAudience.primary) {
-        return { allowed: false, reason: "Discovery stage must identify problem and target audience first." };
+      if (!state.discovery.isAnalyzed || !state.discovery.problem || !state.discovery.targetAudience.primary) {
+        return { allowed: false, reason: "Discovery stage must be completed before Positioning can run." };
       }
       return { allowed: true };
     },
@@ -45,7 +45,7 @@ export const STAGE_CONFIGS: Record<WorkflowStage, StageConfig> = {
     primaryAgent: "Personality",
     supportingAgents: ["Naming", "Voice"],
     canRun: (state) => {
-      if (!state.positioning.positioning || !state.positioning.category) {
+      if (!state.positioning.isPositioned || !state.positioning.positioningStatement || !state.positioning.category) {
         return { allowed: false, reason: "Positioning stage must establish category and positioning first." };
       }
       return { allowed: true };

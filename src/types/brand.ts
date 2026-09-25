@@ -53,13 +53,34 @@ export type Discovery = z.infer<typeof DiscoverySchema>;
 // 2. POSITIONING STAGE TYPES
 // ============================================================================
 
+export const PositioningOutputSchema = z.object({
+  category: z.string().min(2, "Category definition is required"),
+  categoryRationale: z.string().min(10, "Category rationale must be substantive"),
+  positioningStatement: z.string().min(10, "Positioning statement must be substantive"),
+  differentiator: z.string().min(5, "Unique differentiator is required"),
+  valueProposition: z.string().min(10, "Value proposition is required"),
+  competitiveWhitespace: z.array(z.string()).min(1, "At least one competitive whitespace must be identified"),
+  alternatives: z.array(z.string()).default([]),
+  proofPoints: z.array(z.string()).default([]),
+  risks: z.array(z.string()).default([]),
+  confidence: z.number().min(0).max(100).default(85),
+});
+
+export type PositioningOutput = z.infer<typeof PositioningOutputSchema>;
+
 export const PositioningSchema = z.object({
   category: z.string().default(""),
-  positioning: z.string().default(""),
+  categoryRationale: z.string().default(""),
+  positioningStatement: z.string().default(""),
   differentiator: z.string().default(""),
   valueProposition: z.string().default(""),
-  marketAngle: z.string().default(""),
-  competitiveContrast: z.string().default(""),
+  competitiveWhitespace: z.array(z.string()).default([]),
+  alternatives: z.array(z.string()).default([]),
+  proofPoints: z.array(z.string()).default([]),
+  risks: z.array(z.string()).default([]),
+  confidence: z.number().min(0).max(100).default(0),
+  isPositioned: z.boolean().default(false),
+  positionedAt: z.string().optional(),
 });
 
 export type Positioning = z.infer<typeof PositioningSchema>;
@@ -329,11 +350,16 @@ export function createInitialBrandState(rawIdea: string, projectId?: string): Br
     },
     positioning: {
       category: "",
-      positioning: "",
+      categoryRationale: "",
+      positioningStatement: "",
       differentiator: "",
       valueProposition: "",
-      marketAngle: "",
-      competitiveContrast: "",
+      competitiveWhitespace: [],
+      alternatives: [],
+      proofPoints: [],
+      risks: [],
+      confidence: 0,
+      isPositioned: false,
     },
     personality: {
       archetype: "",

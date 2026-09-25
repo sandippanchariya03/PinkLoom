@@ -44,17 +44,38 @@ Turn the PinkLoom foundation into a real agentic workflow with live LLM provider
 
 ---
 
-## Phase 3: Positioning Agent & Brand Shaping
+## Phase 3: Positioning Engine
+**Status: `IMPLEMENTED`**
+
+### Objectives
+Build a real Positioning Agent that consumes the validated Discovery output from BrandState and produces a structured positioning strategy with category framing, differentiators, value proposition, competitive whitespace, and risk analysis.
+
+### Delivered Deliverables
+- [x] **Positioning Agent**: `src/lib/agents/positioning.ts` consuming validated `BrandState.discovery` context (problem, audience personas, needs, constraints, assumptions).
+- [x] **Dedicated Positioning Prompt**: `src/lib/agents/prompts/positioning.ts` with strict anti-branding guardrails and reasoning mandates.
+- [x] **Zod Validation Schema**: `PositioningOutputSchema` in `src/types/brand.ts` validating category, rationale, statement, differentiator, value prop, whitespace, alternatives, proof points, risks, and confidence.
+- [x] **BrandState Integration**: Immutably updates `BrandState.positioning` while preserving `rawIdea`, `discovery`, and all subsequent stage structures.
+- [x] **AgentRun Trace Logging**: Records execution traces with duration, timestamps, status transitions (`running` -> `completed` / `failed`), and input discovery summaries.
+- [x] **Server-Side Execution**: Both Server Route (`src/app/api/positioning/route.ts`) and Server Action (`src/lib/actions/positioning.ts`) protecting API keys.
+- [x] **Supabase Repository Layer**: Persists latest `brand_states` and `agent_runs` to Supabase with memory fallback.
+- [x] **Stage Dependency Enforcement**: Rejects Positioning execution if Discovery is incomplete or unanalyzed.
+- [x] **Interactive Positioning UI**: `src/app/workspace/page.tsx` with information flow indicators ("Built from Discovery"), category framing cards, differentiator wedges, whitespace lists, risk panels, and Phase 4 approval modal.
+- [x] **Comprehensive Test Suite**: `scripts/test-positioning.ts` with 26 automated assertions bringing project test coverage to 48/48 tests passing.
+
+---
+
+## Phase 4: Shape (Personality, Naming, Voice) & Visual Identity
 **Status: `PLANNED`**
 
 ### Objectives
-Activate Stage 02: Positioning Agent to consume validated Discovery data, establish strategic whitespace, and formulate brand differentiators.
+Turn validated positioning and discovery foundations into tangible brand identity: personality archetypes, naming candidate directions with linguistic rationales, tone guidelines, and visual art direction.
 
 ### Planned Deliverables
-- [ ] Implement `PositioningAgent` (`src/lib/agents/positioning.ts`).
-- [ ] Connect Positioning prompt pipeline to read `BrandState.discovery`.
-- [ ] Define `PositioningOutputSchema` (category, differentiator, value prop, market angle).
-- [ ] Add interactive Positioning UI in `/workspace` with approval gate to Stage 03 (Shape).
+- [ ] Implement `PersonalityAgent` (`src/lib/agents/personality.ts`).
+- [ ] Implement `NamingAgent` (`src/lib/agents/naming.ts`).
+- [ ] Implement `VoiceAgent` (`src/lib/agents/voice.ts`).
+- [ ] Implement `VisualAgent` (`src/lib/agents/visual.ts`).
+- [ ] Interactive candidate selection cards in `/workspace` feeding into the Critic Agent.
 
 ---
 

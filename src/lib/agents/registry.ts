@@ -58,11 +58,33 @@ export const DiscoveryAgent: AgentDefinition = {
   },
 };
 
-export const PositioningAgent = createAgentStub(
-  "Positioning",
-  "POSITION",
-  "Establishes market category, unique differentiator, value proposition, and competitive contrast."
-);
+import { executePositioningAgent } from "./positioning";
+
+export const PositioningAgent: AgentDefinition = {
+  name: "Positioning",
+  stage: "POSITION",
+  description:
+    "Establishes market category, unique differentiator, value proposition, and competitive whitespace based on validated Discovery output.",
+  execute: async (input, context): Promise<AgentResult> => {
+    const result = await executePositioningAgent(
+      {
+        projectId: context.projectId,
+        apiKey: input.apiKey as string | undefined,
+      },
+      context.currentBrandState
+    );
+
+    return {
+      agentName: "Positioning",
+      stage: "POSITION",
+      success: result.success,
+      output: (result.positioningOutput as unknown as Record<string, unknown>) || {},
+      updatedStatePartial: result.updatedBrandState || {},
+      durationMs: result.agentRun.durationMs || 0,
+      error: result.error,
+    };
+  },
+};
 
 export const PersonalityAgent = createAgentStub(
   "Personality",
