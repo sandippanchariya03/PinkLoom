@@ -60,3 +60,236 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #C4BFB5;
 }
+
+/* 
+  Lotus Center 3-Layer Architecture
+  Layer 1: Background (Macro lotus photograph & sacred geometry — untouched)
+  Layer 2: Middle background between background and texts (Pure Black #000000)
+  Layer 3: Text and symbols strictly in White, Yellow, Blue, and Red
+*/
+.workspace-lotus-theme {
+  color: #FFFFFF !important;
+}
+
+/* 
+  LAYER 2: Middle background between background and texts is BLACK (#000000)
+*/
+.workspace-lotus-theme header,
+.workspace-lotus-theme section > div,
+.workspace-lotus-theme article,
+.workspace-lotus-theme textarea,
+.workspace-lotus-theme input:not([type="checkbox"]):not([type="radio"]),
+.workspace-lotus-theme select,
+.workspace-lotus-theme table,
+.workspace-lotus-theme th,
+.workspace-lotus-theme td,
+.workspace-lotus-theme button,
+.workspace-lotus-theme [role="button"],
+.workspace-lotus-theme [role="menu"],
+.workspace-lotus-theme [role="alert"],
+.workspace-lotus-theme .bg-white,
+.workspace-lotus-theme [class*="bg-\[\#"],
+.workspace-lotus-theme [class*="bg-gray-"],
+.workspace-lotus-theme [class*="bg-slate-"],
+.workspace-lotus-theme [class*="bg-zinc-"],
+.workspace-lotus-theme [class*="bg-neutral-"],
+.workspace-lotus-theme [class*="bg-stone-"],
+.workspace-lotus-theme [class*="bg-emerald-"],
+.workspace-lotus-theme [class*="bg-amber-"],
+.workspace-lotus-theme [class*="bg-rose-"],
+.workspace-lotus-theme [class*="bg-red-"],
+.workspace-lotus-theme [class*="bg-blue-"],
+.workspace-lotus-theme [class*="bg-gradient-"] {
+  background-color: #000000 !important;
+  background-image: none !important;
+}
+
+/* Explicit Layer 2 card backgrounds for subcomponents */
+.workspace-lotus-theme .bg-\[\#FBF9F6\],
+.workspace-lotus-theme .bg-\[\#FFFFFF\],
+.workspace-lotus-theme .bg-\[\#F8F6F0\],
+.workspace-lotus-theme .bg-\[\#F5F2EA\],
+.workspace-lotus-theme .bg-\[\#FDFBF7\],
+.workspace-lotus-theme .bg-\[\#F3F4F6\],
+.workspace-lotus-theme .bg-\[\#F0EDE6\],
+.workspace-lotus-theme .bg-\[\#FAF8F5\],
+.workspace-lotus-theme .bg-\[\#FAF9F5\],
+.workspace-lotus-theme .bg-\[\#FCFBF8\],
+.workspace-lotus-theme .bg-\[\#FCFBF9\],
+.workspace-lotus-theme .bg-\[\#FDF3F5\],
+.workspace-lotus-theme .bg-\[\#FFFDF7\],
+.workspace-lotus-theme .bg-\[\#F0F5FD\],
+.workspace-lotus-theme .bg-\[\#DBEAFE\],
+.workspace-lotus-theme .bg-gray-50,
+.workspace-lotus-theme .bg-gray-100 {
+  background-color: #000000 !important;
+}
+
+/* Preserve transparency on main grid and structural wrappers so Layer 1 shows between cards */
+.workspace-lotus-theme.min-h-screen,
+.workspace-lotus-theme > main,
+.workspace-lotus-theme .bg-transparent,
+.workspace-lotus-theme div.space-y-6:not([class*="rounded"]):not([class*="p-"]),
+.workspace-lotus-theme div.space-y-4:not([class*="rounded"]):not([class*="p-"]),
+.workspace-lotus-theme div.space-y-2:not([class*="rounded"]):not([class*="p-"]),
+.workspace-lotus-theme div.grid:not([class*="rounded"]):not([class*="p-"]),
+.workspace-lotus-theme div.flex-wrap {
+  background-color: transparent !important;
+}
+
+/* Layer 2 Borders: Crisp, elegant boundaries */
+.workspace-lotus-theme [class*="border"],
+.workspace-lotus-theme textarea,
+.workspace-lotus-theme input:not([type="checkbox"]):not([type="radio"]),
+.workspace-lotus-theme select {
+  border-color: rgba(255, 255, 255, 0.20) !important;
+}
+
+.workspace-lotus-theme .border-\[\#FFD54F\],
+.workspace-lotus-theme .border-yellow-400,
+.workspace-lotus-theme .border-yellow-500,
+.workspace-lotus-theme [class*="ring-\[\#FFD54F\]"] {
+  border-color: #FFD54F !important;
+}
+
+.workspace-lotus-theme .border-blue-400,
+.workspace-lotus-theme .border-blue-500,
+.workspace-lotus-theme .border-\[\#3B82F6\],
+.workspace-lotus-theme .border-\[\#DBEAFE\] {
+  border-color: #60A5FA !important;
+}
+
+.workspace-lotus-theme .border-red-400,
+.workspace-lotus-theme .border-red-500,
+.workspace-lotus-theme .border-rose-500,
+.workspace-lotus-theme .border-red-200 {
+  border-color: #EF4444 !important;
+}
+
+/* 
+  LAYER 3: All Text and Symbols strictly White, Yellow, Blue, and Red
+*/
+
+/* 1. WHITE: Default text, headings, descriptions, body, labels, placeholders */
+.workspace-lotus-theme,
+.workspace-lotus-theme p,
+.workspace-lotus-theme h1,
+.workspace-lotus-theme h2,
+.workspace-lotus-theme h3,
+.workspace-lotus-theme h4,
+.workspace-lotus-theme h5,
+.workspace-lotus-theme h6,
+.workspace-lotus-theme li,
+.workspace-lotus-theme td,
+.workspace-lotus-theme th,
+.workspace-lotus-theme label,
+.workspace-lotus-theme textarea,
+.workspace-lotus-theme input,
+.workspace-lotus-theme .text-black,
+.workspace-lotus-theme .text-white,
+.workspace-lotus-theme [class*="text-\[\#141416\]"],
+.workspace-lotus-theme [class*="text-\[\#2A292E\]"],
+.workspace-lotus-theme [class*="text-\[\#2E2D2B\]"],
+.workspace-lotus-theme [class*="text-\[\#27262A\]"],
+.workspace-lotus-theme [class*="text-\[\#333333\]"],
+.workspace-lotus-theme [class*="text-\[\#383734\]"],
+.workspace-lotus-theme [class*="text-\[\#4A4946\]"],
+.workspace-lotus-theme [class*="text-\[\#52514D\]"],
+.workspace-lotus-theme [class*="text-\[\#686764\]"],
+.workspace-lotus-theme [class*="text-\[\#78756F\]"],
+.workspace-lotus-theme [class*="text-\[\#86847E\]"],
+.workspace-lotus-theme [class*="text-\[\#8E8B84\]"],
+.workspace-lotus-theme [class*="text-\[\#96948F\]"],
+.workspace-lotus-theme [class*="text-\[\#A5A39E\]"],
+.workspace-lotus-theme [class*="text-\[\#CFD8DC\]"],
+.workspace-lotus-theme [class*="text-\[\#DDD9D0\]"],
+.workspace-lotus-theme [class*="text-\[\#FAF6F0\]"],
+.workspace-lotus-theme [class*="text-\[\#FAF7F2\]"],
+.workspace-lotus-theme [class*="text-\[\#FFF9F2\]"],
+.workspace-lotus-theme [class*="text-gray-"],
+.workspace-lotus-theme [class*="text-slate-"],
+.workspace-lotus-theme [class*="text-zinc-"],
+.workspace-lotus-theme [class*="text-neutral-"],
+.workspace-lotus-theme [class*="text-stone-"],
+.workspace-lotus-theme [class*="text-white\/"] {
+  color: #FFFFFF !important;
+}
+
+.workspace-lotus-theme textarea::placeholder,
+.workspace-lotus-theme input::placeholder {
+  color: rgba(255, 255, 255, 0.70) !important;
+}
+
+/* 2. YELLOW: Stage Numbers, Stage Badges, Highlights, Active Icons, Warnings */
+.workspace-lotus-theme .text-yellow-300,
+.workspace-lotus-theme .text-yellow-400,
+.workspace-lotus-theme .text-yellow-500,
+.workspace-lotus-theme .text-amber-300,
+.workspace-lotus-theme .text-amber-400,
+.workspace-lotus-theme .text-amber-500,
+.workspace-lotus-theme .text-orange-400,
+.workspace-lotus-theme .text-\[\#FFD54F\],
+.workspace-lotus-theme .text-\[\#FACC15\],
+.workspace-lotus-theme .text-\[\#EAB308\],
+.workspace-lotus-theme .text-\[\#B78103\],
+.workspace-lotus-theme .text-\[\#F57C00\],
+.workspace-lotus-theme .text-\[\#E87A90\],
+.workspace-lotus-theme [data-theme-color="yellow"] {
+  color: #FFD54F !important;
+}
+
+/* 3. BLUE: Ready, Analyzed, Done, Completed, Info, Interactive Links */
+.workspace-lotus-theme .text-blue-300,
+.workspace-lotus-theme .text-blue-400,
+.workspace-lotus-theme .text-blue-500,
+.workspace-lotus-theme .text-blue-600,
+.workspace-lotus-theme .text-cyan-300,
+.workspace-lotus-theme .text-cyan-400,
+.workspace-lotus-theme .text-indigo-400,
+.workspace-lotus-theme .text-emerald-300,
+.workspace-lotus-theme .text-emerald-400,
+.workspace-lotus-theme .text-emerald-200,
+.workspace-lotus-theme .text-green-300,
+.workspace-lotus-theme .text-green-400,
+.workspace-lotus-theme .text-green-500,
+.workspace-lotus-theme .text-\[\#2E7D32\],
+.workspace-lotus-theme .text-\[\#1E40AF\],
+.workspace-lotus-theme .text-\[\#3B82F6\],
+.workspace-lotus-theme [data-theme-color="blue"] {
+  color: #60A5FA !important;
+}
+
+/* 4. RED: Errors, Blockers, Critical Issues, Pain Points, Reset */
+.workspace-lotus-theme .text-red-300,
+.workspace-lotus-theme .text-red-400,
+.workspace-lotus-theme .text-red-500,
+.workspace-lotus-theme .text-rose-200,
+.workspace-lotus-theme .text-rose-300,
+.workspace-lotus-theme .text-rose-400,
+.workspace-lotus-theme .text-rose-500,
+.workspace-lotus-theme .text-\[\#C62828\],
+.workspace-lotus-theme .text-\[\#D84A6F\],
+.workspace-lotus-theme [data-theme-color="red"] {
+  color: #EF4444 !important;
+}
+
+/* All Symbols and SVGs inherit the white/yellow/blue/red color */
+.workspace-lotus-theme svg {
+  color: inherit;
+}
+
+/* Custom internal scrollbar for workflow stage cards */
+.custom-stage-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-stage-scrollbar::-webkit-scrollbar-track {
+  background: #000000;
+  border-radius: 9999px;
+}
+.custom-stage-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 9999px;
+}
+.custom-stage-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #FFD54F;
+}

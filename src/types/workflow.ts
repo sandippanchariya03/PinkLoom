@@ -12,6 +12,9 @@ export const WorkflowStageEnum = z.enum([
   "CHALLENGE",
   "CONSISTENCY",
   "DELIVER",
+  "DELIVERY",
+  "BRAND_KIT",
+  "FINAL_BRAND_KIT",
 ]);
 
 export type WorkflowStage = z.infer<typeof WorkflowStageEnum>;
@@ -90,6 +93,14 @@ export const WORKFLOW_STAGES: StageDefinition[] = [
     tagline: "Synthesize the Launch Brand Kit",
     description: "Compiles all validated brand assets, manifesto, guidelines, and launch checklists.",
     associatedAgents: ["Delivery Agent"],
+  },
+  {
+    stage: "BRAND_KIT",
+    order: 8,
+    label: "Final Brand Kit",
+    tagline: "The Authoritative Brand System",
+    description: "Assembles the complete, validated brand system into one authoritative, presentation-ready kit.",
+    associatedAgents: ["Brand Kit Builder"],
   },
 ];
 

@@ -289,7 +289,149 @@ export class OpenAILLMProvider implements LLMProvider {
       raw: {
         text: cleaned,
         finishReason: data.choices?.[0]?.finish_reason,
-        usage: data.usage,
+        usage: data.usage
+          ? {
+              promptTokens: data.usage.prompt_tokens ?? 0,
+              completionTokens: data.usage.completion_tokens ?? 0,
+              totalTokens: data.usage.total_tokens ?? 0,
+            }
+          : undefined,
+      },
+      validationSuccess: true,
+    };
+  }
+}
+
+/**
+ * GroqLLMProvider: Ultra-fast inference provider for OpenAI-compatible Groq endpoints.
+ */
+export class GroqLLMProvider implements LLMProvider {
+  readonly providerName = "groq";
+  private defaultModel: string;
+  private baseUrl: string;
+
+  constructor(
+    defaultModel = "openai/gpt-oss-120b",
+    baseUrl = "https://api.groq.com/openai/v1"
+  ) {
+    this.defaultModel = process.env.GROQ_MODEL || defaultModel;
+    this.baseUrl = baseUrl;
+  }
+
+  private resolveApiKey(options?: LLMGenerationOptions): string {
+    const key =
+      options?.apiKey ||
+      process.env.GROQ_API_KEY ||
+      process.env.AI_API_KEY;
+
+    if (!key || key.trim().length === 0 || key.includes("your-ai-api-key")) {
+      throw new Error(
+        "GROQ_API_KEY (or AI_API_KEY) is missing. Please configure your Groq API key in .env.local to execute the agent."
+      );
+    }
+    return key.trim();
+  }
+
+  async generateText(
+    messages: LLMMessage[],
+    options?: LLMGenerationOptions
+  ): Promise<LLMResponse> {
+    const apiKey = this.resolveApiKey(options);
+    const model = options?.model || this.defaultModel;
+
+    const res = await fetch(`${this.baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: options?.temperature ?? 0.4,
+        max_tokens: options?.maxTokens || 4096,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Groq API request failed (${res.status}): ${err}`);
+    }
+
+    const data = await res.json();
+    return {
+      text: data.choices?.[0]?.message?.content || "",
+      finishReason: data.choices?.[0]?.finish_reason || "stop",
+      usage: data.usage
+        ? {
+            promptTokens: data.usage.prompt_tokens ?? 0,
+            completionTokens: data.usage.completion_tokens ?? 0,
+            totalTokens: data.usage.total_tokens ?? 0,
+          }
+        : undefined,
+    };
+  }
+
+  async generateStructured<T>(
+    messages: LLMMessage[],
+    schema: z.ZodType<T>,
+    options?: LLMGenerationOptions
+  ): Promise<StructuredLLMResponse<T>> {
+    const apiKey = this.resolveApiKey(options);
+    const model = options?.model || this.defaultModel;
+
+    const res = await fetch(`${this.baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        response_format: { type: "json_object" },
+        temperature: options?.temperature ?? 0.2,
+        max_tokens: options?.maxTokens || 4096,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Groq API request failed (${res.status}): ${err}`);
+    }
+
+    const data = await res.json();
+    const rawText = data.choices?.[0]?.message?.content || "{}";
+    const cleaned = extractJsonString(rawText);
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch (parseError) {
+      throw new Error(
+        `Failed to parse Groq model output as JSON: ${parseError instanceof Error ? parseError.message : "Malformed JSON"}`
+      );
+    }
+
+    const validated = schema.safeParse(parsed);
+    if (!validated.success) {
+      throw new Error(
+        `Groq response failed schema validation: ${validated.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`
+      );
+    }
+
+    return {
+      data: validated.data,
+      raw: {
+        text: cleaned,
+        finishReason: data.choices?.[0]?.finish_reason,
+        usage: data.usage
+          ? {
+              promptTokens: data.usage.prompt_tokens ?? 0,
+              completionTokens: data.usage.completion_tokens ?? 0,
+              totalTokens: data.usage.total_tokens ?? 0,
+            }
+          : undefined,
       },
       validationSuccess: true,
     };
@@ -309,7 +451,14 @@ export function getAIProvider(): LLMProvider {
 
   const preferredProvider = process.env.AI_PROVIDER?.toLowerCase();
 
-  if (preferredProvider === "openai" || process.env.OPENAI_API_KEY) {
+  // Explicit or auto-detected Groq
+  if (preferredProvider === "groq" || (!preferredProvider && process.env.GROQ_API_KEY)) {
+    currentProviderInstance = new GroqLLMProvider();
+    return currentProviderInstance;
+  }
+
+  // Explicit or auto-detected OpenAI
+  if (preferredProvider === "openai" || (!preferredProvider && process.env.OPENAI_API_KEY)) {
     currentProviderInstance = new OpenAILLMProvider();
     return currentProviderInstance;
   }
@@ -319,6 +468,10 @@ export function getAIProvider(): LLMProvider {
   return currentProviderInstance;
 }
 
-export function setAIProvider(provider: LLMProvider): void {
+export function setAIProvider(provider: LLMProvider | null): void {
   currentProviderInstance = provider;
+}
+
+export function resetAIProvider(): void {
+  currentProviderInstance = null;
 }

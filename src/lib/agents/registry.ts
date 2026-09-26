@@ -59,6 +59,7 @@ export const DiscoveryAgent: AgentDefinition = {
 };
 
 import { executePositioningAgent } from "./positioning";
+import { executePersonalityAgent } from "./personality";
 
 export const PositioningAgent: AgentDefinition = {
   name: "Positioning",
@@ -86,47 +87,226 @@ export const PositioningAgent: AgentDefinition = {
   },
 };
 
-export const PersonalityAgent = createAgentStub(
-  "Personality",
-  "SHAPE",
-  "Architects brand archetype, behavioral traits, core operating principles, and emotional resonance."
-);
+export const PersonalityAgent: AgentDefinition = {
+  name: "Personality",
+  stage: "SHAPE",
+  description:
+    "Translates validated Discovery and Positioning strategy into brand archetype, behavioral traits, principles, and emotional territory.",
+  execute: async (input, context): Promise<AgentResult> => {
+    const result = await executePersonalityAgent(
+      {
+        projectId: context.projectId,
+        apiKey: input.apiKey as string | undefined,
+      },
+      context.currentBrandState
+    );
 
-export const NamingAgent = createAgentStub(
-  "Naming",
-  "SHAPE",
-  "Generates distinct naming directions, candidate names with linguistic rationales, and candidate taglines."
-);
+    return {
+      agentName: "Personality",
+      stage: "SHAPE",
+      success: result.success,
+      output: (result.personalityOutput as unknown as Record<string, unknown>) || {},
+      updatedStatePartial: result.updatedBrandState || {},
+      durationMs: result.agentRun.durationMs || 0,
+      error: result.error,
+    };
+  },
+};
 
-export const VoiceAgent = createAgentStub(
-  "Voice",
-  "SHAPE",
-  "Formulates voice guidelines, tone-of-voice do's and don'ts, elevator pitch, and foundational messaging pillars."
-);
+import { executeNamingAgent } from "./naming";
 
-export const VisualAgent = createAgentStub(
-  "Visual",
-  "VISUALIZE",
-  "Translates conceptual brand soul into visual identity: color palettes, typography pairings, imagery rules, and logo direction."
-);
+export const NamingAgent: AgentDefinition = {
+  name: "Naming",
+  stage: "SHAPE",
+  description:
+    "Translates validated Discovery, Positioning, and Personality strategy into distinct naming territories, candidate names with linguistic and phonetic assessments, and taglines.",
+  execute: async (input, context): Promise<AgentResult> => {
+    const result = await executeNamingAgent(
+      {
+        projectId: context.projectId,
+        apiKey: input.apiKey as string | undefined,
+      },
+      context.currentBrandState
+    );
 
-export const CriticAgent = createAgentStub(
-  "Critic",
-  "CHALLENGE",
-  "Performs rigorous adversarial critique: flags generic clichés, unmasks internal contradictions, and tests positioning against reality."
-);
+    return {
+      agentName: "Naming",
+      stage: "SHAPE",
+      success: result.success,
+      output: (result.namingOutput as unknown as Record<string, unknown>) || {},
+      updatedStatePartial: result.updatedBrandState || {},
+      durationMs: result.agentRun.durationMs || 0,
+      error: result.error,
+    };
+  },
+};
 
-export const ConsistencyAgent = createAgentStub(
-  "Consistency",
-  "CONSISTENCY",
-  "Evaluates cross-stage systemic cohesion (strategy vs. voice vs. visual) and calculates brand harmony scores."
-);
+import { executeVoiceAgent } from "./voice";
 
-export const DeliveryAgent = createAgentStub(
-  "Delivery",
-  "DELIVER",
-  "Synthesizes the validated brand assets into a production-ready Brand Kit, manifesto, and launch deliverables."
-);
+export const VoiceAgent: AgentDefinition = {
+  name: "Voice",
+  stage: "SHAPE",
+  description:
+    "Translates validated Discovery, Positioning, Personality, and human-selected brand identity into an operational voice system, tone dimensions, vocabulary rules, messaging pillars, and copy examples.",
+  execute: async (input, context): Promise<AgentResult> => {
+    const result = await executeVoiceAgent(
+      {
+        projectId: context.projectId,
+        apiKey: input.apiKey as string | undefined,
+      },
+      context.currentBrandState
+    );
+
+    return {
+      agentName: "Voice",
+      stage: "SHAPE",
+      success: result.success,
+      output: (result.voiceOutput as unknown as Record<string, unknown>) || {},
+      updatedStatePartial: result.updatedBrandState || {},
+      durationMs: result.agentRun?.durationMs || 0,
+      error: result.error,
+    };
+  },
+};
+
+import { executeVisualAgent } from "./visual";
+
+export const VisualAgent: AgentDefinition = {
+  name: "Visual",
+  stage: "VISUALIZE",
+  description:
+    "Translates validated strategy, personality, selected brand identity, and voice into an operational visual brand system: color palettes, typography pairings, imagery rules, logo concept, and layout principles.",
+  execute: async (input, context): Promise<AgentResult> => {
+    const result = await executeVisualAgent(
+      {
+        projectId: context.projectId,
+        apiKey: input.apiKey as string | undefined,
+      },
+      context.currentBrandState
+    );
+
+    return {
+      agentName: "Visual",
+      stage: "VISUALIZE",
+      success: result.success,
+      output: (result.visualOutput as unknown as Record<string, unknown>) || {},
+      updatedStatePartial: result.updatedBrandState || {},
+      durationMs: result.agentRun?.durationMs || 0,
+      error: result.error,
+    };
+  },
+};
+
+import { executeCriticAgent } from "./critic";
+
+export const CriticAgent: AgentDefinition = {
+  name: "Critic",
+  stage: "CHALLENGE",
+  description:
+    "Performs rigorous diagnostic evaluation across the entire brand system: flags generic clichés, unmasks internal contradictions, detects audience mismatches, and tests positioning against reality.",
+  execute: async (input, context): Promise<AgentResult> => {
+    const result = await executeCriticAgent(
+      {
+        projectId: context.projectId,
+        apiKey: input.apiKey as string | undefined,
+      },
+      context.currentBrandState
+    );
+
+    return {
+      agentName: "Critic",
+      stage: "CHALLENGE",
+      success: result.success,
+      output: (result.criticOutput as unknown as Record<string, unknown>) || {},
+      updatedStatePartial: result.updatedBrandState || {},
+      durationMs: result.agentRun?.durationMs || 0,
+      error: result.error,
+    };
+  },
+};
+
+import { executeConsistencyAgent } from "./consistency";
+
+export const ConsistencyAgent: AgentDefinition = {
+  name: "Consistency",
+  stage: "CONSISTENCY",
+  description:
+    "Evaluates cross-stage systemic cohesion (strategy vs. personality vs. voice vs. visual vs. messaging) and identifies structural alignment friction.",
+  execute: async (input, context): Promise<AgentResult> => {
+    const result = await executeConsistencyAgent(
+      {
+        projectId: context.projectId,
+        apiKey: input.apiKey as string | undefined,
+      },
+      context.currentBrandState
+    );
+
+    return {
+      agentName: "Consistency",
+      stage: "CONSISTENCY",
+      success: result.success,
+      output: (result.consistencyOutput as unknown as Record<string, unknown>) || {},
+      updatedStatePartial: result.updatedBrandState || {},
+      durationMs: result.agentRun?.durationMs || 0,
+      error: result.error,
+    };
+  },
+};
+
+import { executeDeliveryAgent } from "./delivery";
+import { assembleFinalBrandKit } from "@/lib/brand-kit/final-brand-kit";
+
+export const DeliveryAgent: AgentDefinition = {
+  name: "Delivery",
+  stage: "DELIVERY",
+  description:
+    "Transforms the validated, consistent brand system into operationalized brand guidance, messaging, voice, visual specifications, and launch deliverables.",
+  execute: async (input, context): Promise<AgentResult> => {
+    const result = await executeDeliveryAgent(
+      {
+        projectId: context.projectId,
+        apiKey: input.apiKey as string | undefined,
+      },
+      context.currentBrandState
+    );
+
+    return {
+      agentName: "Delivery",
+      stage: "DELIVERY",
+      success: result.success,
+      output: (result.deliveryOutput as unknown as Record<string, unknown>) || {},
+      updatedStatePartial: result.updatedBrandState || {},
+      durationMs: result.agentRun?.durationMs || 0,
+      error: result.error,
+    };
+  },
+};
+
+export const BrandKitAgent: AgentDefinition = {
+  name: "BrandKit",
+  stage: "BRAND_KIT",
+  description:
+    "Assembles the complete, validated PinkLoom brand system into one authoritative, presentation-ready Final Brand Kit.",
+  execute: async (_input, context): Promise<AgentResult> => {
+    const result = await assembleFinalBrandKit(
+      context.currentBrandState,
+      {
+        projectId: context.projectId,
+        persist: true,
+      }
+    );
+
+    return {
+      agentName: "BrandKit",
+      stage: "BRAND_KIT",
+      success: result.success,
+      output: (result.finalBrandKit as unknown as Record<string, unknown>) || {},
+      updatedStatePartial: result.updatedBrandState || {},
+      durationMs: result.agentRun?.durationMs || 0,
+      error: result.error,
+    };
+  },
+};
 
 export const AGENT_REGISTRY: Record<AgentName, AgentDefinition> = {
   Orchestrator: OrchestratorAgent,
@@ -139,6 +319,7 @@ export const AGENT_REGISTRY: Record<AgentName, AgentDefinition> = {
   Critic: CriticAgent,
   Consistency: ConsistencyAgent,
   Delivery: DeliveryAgent,
+  BrandKit: BrandKitAgent,
 };
 
 export function getAgent(name: AgentName): AgentDefinition {

@@ -22,6 +22,10 @@ export const metadata: Metadata = {
   title: "PinkLoom — AI Brand Intelligence Platform",
   description:
     "Transform a rough startup, product, or community idea into a coherent, launch-ready brand system through a staged agentic AI workflow.",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

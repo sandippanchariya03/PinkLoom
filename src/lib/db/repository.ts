@@ -7,10 +7,23 @@ const memoryProjects = new Map<string, { id: string; raw_idea: string; created_a
 const memoryBrandStates = new Map<string, BrandState>();
 const memoryAgentRuns = new Map<string, AgentRun[]>();
 
+async function withTimeout<T>(promise: PromiseLike<T>, ms = 2500): Promise<T> {
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`Database operation timed out after ${ms}ms`)), ms)
+    ),
+  ]);
+}
+
 /**
  * Persists project entry to Supabase (or memory fallback).
  */
-export async function persistProject(projectId: string, rawIdea: string): Promise<boolean> {
+export async function persistProject(
+  projectId: string,
+  rawIdea: string,
+  userId?: string
+): Promise<boolean> {
   const supabase = getSupabase();
   const timestamp = new Date().toISOString();
 
@@ -22,13 +35,16 @@ export async function persistProject(projectId: string, rawIdea: string): Promis
   }
 
   try {
-    const { error } = await supabase.from("projects").upsert(
-      {
-        id: projectId,
-        raw_idea: rawIdea,
-        updated_at: timestamp,
-      },
-      { onConflict: "id" }
+    const { error } = await withTimeout(
+      supabase.from("projects").upsert(
+        {
+          id: projectId,
+          raw_idea: rawIdea,
+          updated_at: timestamp,
+          ...(userId ? { user_id: userId } : {}),
+        },
+        { onConflict: "id" }
+      )
     );
     if (error) {
       console.warn("[PinkLoom DB] Supabase project upsert warning:", error.message);
@@ -40,6 +56,7 @@ export async function persistProject(projectId: string, rawIdea: string): Promis
     return false;
   }
 }
+
 
 /**
  * Persists the latest BrandState to Supabase (or memory fallback).
@@ -56,22 +73,25 @@ export async function persistBrandState(brandState: BrandState): Promise<boolean
   }
 
   try {
-    const { error } = await supabase.from("brand_states").upsert(
-      {
-        project_id: projectId,
-        discovery: brandState.discovery,
-        positioning: brandState.positioning,
-        personality: brandState.personality,
-        naming: brandState.naming,
-        voice: brandState.voice,
-        visual_direction: brandState.visualDirection,
-        critique: brandState.critique,
-        consistency: brandState.consistency,
-        final_brand: brandState.finalBrandKit,
-        version: brandState.version,
-        updated_at: timestamp,
-      },
-      { onConflict: "project_id" }
+    const { error } = await withTimeout(
+      supabase.from("brand_states").upsert(
+        {
+          project_id: projectId,
+          discovery: brandState.discovery,
+          positioning: brandState.positioning,
+          personality: brandState.personality,
+          naming: brandState.naming,
+          voice: brandState.voice,
+          visual_direction: brandState.visualDirection,
+          critique: brandState.critique,
+          consistency: brandState.consistency,
+          delivery: brandState.delivery,
+          final_brand: brandState.finalBrandKit,
+          version: brandState.version,
+          updated_at: timestamp,
+        },
+        { onConflict: "project_id" }
+      )
     );
 
     if (error) {
@@ -103,21 +123,23 @@ export async function persistAgentRun(agentRun: AgentRun): Promise<boolean> {
   }
 
   try {
-    const { error } = await supabase.from("agent_runs").upsert(
-      {
-        id: agentRun.id,
-        project_id: agentRun.projectId,
-        agent_name: agentRun.agentName,
-        stage: agentRun.stage,
-        input: agentRun.input,
-        output: agentRun.output,
-        status: agentRun.status,
-        error: agentRun.error,
-        duration_ms: agentRun.durationMs,
-        created_at: agentRun.createdAt,
-        completed_at: agentRun.completedAt,
-      },
-      { onConflict: "id" }
+    const { error } = await withTimeout(
+      supabase.from("agent_runs").upsert(
+        {
+          id: agentRun.id,
+          project_id: agentRun.projectId,
+          agent_name: agentRun.agentName,
+          stage: agentRun.stage,
+          input: agentRun.input,
+          output: agentRun.output,
+          status: agentRun.status,
+          error: agentRun.error,
+          duration_ms: agentRun.durationMs,
+          created_at: agentRun.createdAt,
+          completed_at: agentRun.completedAt,
+        },
+        { onConflict: "id" }
+      )
     );
 
     if (error) {
@@ -143,11 +165,13 @@ export async function getStoredBrandState(projectId: string): Promise<BrandState
   if (!supabase) return null;
 
   try {
-    const { data, error } = await supabase
-      .from("brand_states")
-      .select("*")
-      .eq("project_id", projectId)
-      .single();
+    const { data, error } = await withTimeout(
+      supabase
+        .from("brand_states")
+        .select("*")
+        .eq("project_id", projectId)
+        .single()
+    );
 
     if (error || !data) return null;
 
@@ -164,6 +188,7 @@ export async function getStoredBrandState(projectId: string): Promise<BrandState
       visualDirection: data.visual_direction,
       critique: data.critique,
       consistency: data.consistency,
+      delivery: data.delivery,
       finalBrandKit: data.final_brand,
     };
   } catch {
@@ -180,11 +205,13 @@ export async function getStoredAgentRuns(projectId: string): Promise<AgentRun[]>
   if (!supabase) return inMemory;
 
   try {
-    const { data, error } = await supabase
-      .from("agent_runs")
-      .select("*")
-      .eq("project_id", projectId)
-      .order("created_at", { ascending: false });
+    const { data, error } = await withTimeout(
+      supabase
+        .from("agent_runs")
+        .select("*")
+        .eq("project_id", projectId)
+        .order("created_at", { ascending: false })
+    );
 
     if (error || !data) return inMemory;
 

@@ -17,6 +17,7 @@ export const AgentNameEnum = z.enum([
   "Critic",
   "Consistency",
   "Delivery",
+  "BrandKit",
 ]);
 
 export type AgentName = z.infer<typeof AgentNameEnum>;

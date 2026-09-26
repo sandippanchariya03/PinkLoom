@@ -5,12 +5,26 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "lint": "eslint",
-    "test": "tsx scripts/test-discovery.ts && tsx scripts/test-positioning.ts"
+    "lint": "eslint .",
+    "test": "tsx scripts/test-discovery.ts && tsx scripts/test-positioning.ts && tsx scripts/test-personality.ts && tsx scripts/test-naming.ts && tsx scripts/test-voice.ts && tsx scripts/test-visual.ts && tsx scripts/test-critic.ts && tsx scripts/test-consistency.ts && tsx scripts/test-delivery.ts && tsx scripts/test-final-brand-kit.ts && tsx scripts/test-pre-phase-10-critic-ui.ts && tsx scripts/test-auth-integration.ts",
+    "test:discovery": "tsx scripts/test-discovery.ts",
+    "test:positioning": "tsx scripts/test-positioning.ts",
+    "test:personality": "tsx scripts/test-personality.ts",
+    "test:naming": "tsx scripts/test-naming.ts",
+    "test:voice": "tsx scripts/test-voice.ts",
+    "test:visual": "tsx scripts/test-visual.ts",
+    "test:critic": "tsx scripts/test-critic.ts",
+    "test:critic-ui": "tsx scripts/test-pre-phase-10-critic-ui.ts",
+    "test:consistency": "tsx scripts/test-consistency.ts",
+    "test:delivery": "tsx scripts/test-delivery.ts",
+    "test:final-brand-kit": "tsx scripts/test-final-brand-kit.ts",
+    "test:auth": "tsx scripts/test-auth-integration.ts"
   },
   "dependencies": {
     "@google/genai": "^2.24.0",
+    "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
+    "@types/three": "^0.186.0",
     "clsx": "^2.1.1",
     "lucide-react": "^1.48.0",
     "motion": "^13.4.4",
@@ -18,6 +32,7 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "tailwind-merge": "^3.7.0",
+    "three": "^0.186.1",
     "zod": "^4.6.5"
   },
   "devDependencies": {
