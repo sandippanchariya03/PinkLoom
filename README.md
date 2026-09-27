@@ -1,7 +1,13 @@
-# PinkLoom 🪷
+<p align="center">
+  <img src="public/logo.png" alt="PinkLoom Logo" width="180">
+</p>
 
-> **AI-Powered Brand Intelligence & Identity Engine**  
-> *Transforming nascent concepts into launch-ready, battle-tested brand systems through an 8-stage adversarial agentic pipeline.*
+<h1 align="center">PinkLoom 🪷</h1>
+
+<p align="center">
+  <strong>AI-Powered Brand Intelligence & Identity Engine</strong><br>
+  <em>Transforming nascent concepts into launch-ready, battle-tested brand systems through an 8-stage adversarial agentic pipeline.</em>
+</p>
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.3-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react)](https://react.dev/)
